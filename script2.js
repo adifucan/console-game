@@ -11,8 +11,6 @@
 */
 
 (function () {
-    var score = 0;
-
     function Question (question, answers, correctAnswer) {
         this.question = question;
         this.answers = answers;
@@ -27,23 +25,37 @@
         }
     };
 
-    Question.prototype.checkAnswer = function (answer) {
+    Question.prototype.checkAnswer = function (answer, keepScore) {
+        var score;
+
         if (parseInt(answer) === this.correctAnswer) {
             console.log("Correct answer!");
-            score += 1;
-        } else if (answer === 'exit'){
-            return;
+            score  = keepScore(true);
         } else {
             console.log("Wrong answer. Try harder!");
+            score = keepScore(false);
         }
 
-        this.displayScore();
+        this.displayScore(score);
     };
 
-    Question.prototype.displayScore = function () {
+    Question.prototype.displayScore = function (score) {
         console.log('Your current score is: ' + score);
         console.log('-------------------------');
     };
+
+    function manageScore() {
+        var score = 0;
+
+        return function (correct) {
+            if (correct) {
+                score += 1;
+            }
+
+            return score;
+        }
+    }
+    var keepScore = manageScore();
 
     var question1 = new Question("Is JavaScript the coolest programming language in the world?", ["Yes", "No"], 0);
     var question2 = new Question("What is the name of the founder of Newton's laws?", ["John", "Adam", "Isaac"], 2);
@@ -51,14 +63,19 @@
 
     var questions = [question1, question2, question3];
 
-    do {
+    function nextQuestion() {
         var n = Math.floor(Math.random() * questions.length);
 
         questions[n].displayQuestion();
 
         var answer = prompt('Select correct answer (just type the number). Or type exit to quit.');
 
-        questions[n].checkAnswer(answer);
+        if (answer !== 'exit') {
+            questions[n].checkAnswer(parseInt(answer), keepScore);
 
-    } while (answer !== 'exit');
+            nextQuestion();
+        }
+    }
+
+    nextQuestion();
 })();
